@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  </head>
+  <body>
+    <div id="input_area">
+      <p>
+        <input type="text" name="url" id="url" placeholder="url" size="64">
+      </p>
+      <p>
+        <input type="text" name="uid" id="uid" placeholder="uid" size="64">
+      </p>
+      <p>
+        <input type="text" name="did" id="did" placeholder="did" size="64">
+      </p>
+      <form>
+        <p>
+          <textarea cols="100", rows="10" placeholder="brand_type_key,value"></textarea>
+        </p>
+        <p>
+          <button>parse</button>
+        </p>
+      </form>
+    </div>
+    <table id="fire_list">
+      <tbody>
+
+      </tbody>
+    </table>
+  </body>
+  <script>
+    let uid;
+    let did;
+    let url;
+    const parse = csvStr => {
+      return csvStr.split('\n').map(line => {
+        const vs = line.trim().split(',');
+        return {
+          brand: vs[0],
+          value: vs[1],
+        };
+      })
+    }
+    const success = console.log;
+    const error = console.error;
+
+    function fire() {
+      const $this = $(this);
+      const irVal = $this.data('ir');
+      $this.text('fire');
+      $.ajax({
+        type: "POST",
+        url,
+        contentType: 'application/JSON',
+        data: JSON.stringify({
+          action: [
+            {
+              layer: 'command',
+              domain: 'ir',
+              dataType: 'ir',
+              data: {
+                count: 1,
+                key: [
+                  irVal,
+                ],
+              },
+            },
+          ],
+        }),
+        success: () => {
+          let count = $this.data('count') || 0;
+          $this.data('count', ++count);
+          $this.text(`done: ${count}`);
+        },
+        error: e => {
+          alert(e.responseText);
+        },
+        dataType: 'json'
+      });
+    }
+
+    $(() => {
+      $('#uid').val(localStorage.getItem('uid'));
+      $('#did').val(localStorage.getItem('did'));
+      $('#url').val(localStorage.getItem('url'));
+      $('#input_area textarea').val(localStorage.getItem('csv'));
+      $('#input_area form').on('submit', e => {
+        e.preventDefault();
+        const csv = $('#input_area textarea').val().trim();
+        const $tb = $('#fire_list tbody');
+        $tb.html('');
+        uid = $('#uid').val();
+        did = $('#did').val();
+        url = `${$('#url').val()}&uid=${uid}&did=${did}`;
+        localStorage.setItem('uid', uid);
+        localStorage.setItem('did', did);
+        localStorage.setItem('csv', csv);
+        localStorage.setItem('url', url);
+        parse(csv).forEach(data => {
+          const $tr = $('<tr>').appendTo($tb);
+          const $buttonTd = $('<td>').appendTo($tr);
+          const $button = $('<button>').text('fire').data('ir', data.value).appendTo($buttonTd);
+          const $brand = $('<td>').text(data.brand).appendTo($tr);
+          const $type = $('<td>').text(data.type).appendTo($tr);
+          const $key = $('<td>').text(data.key).appendTo($tr);
+          $button.click(fire);
+        });
+      });
+    });
+  </script>
+</html>
