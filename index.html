@@ -50,7 +50,7 @@
       $this.text('fire');
       $.ajax({
         type: "POST",
-        url,
+        url: `${url}&uid=${uid}&did=${did}`,
         contentType: 'application/JSON',
         data: JSON.stringify({
           action: [
@@ -91,7 +91,7 @@
         $tb.html('');
         uid = $('#uid').val();
         did = $('#did').val();
-        url = `${$('#url').val()}&uid=${uid}&did=${did}`;
+        url = $('#url').val();
         localStorage.setItem('uid', uid);
         localStorage.setItem('did', did);
         localStorage.setItem('csv', csv);
